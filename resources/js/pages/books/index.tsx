@@ -1,20 +1,29 @@
 import AppLayout from '@/layouts/app-layout';
-import { type Book, type BookFilters, type Paginated } from '@/types';
-import { Head, Link } from '@inertiajs/react';
+import { type Book, type BookFilters, type Paginated, type SharedData } from '@/types';
+import { Head, Link, usePage } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { formatIDR } from '@/lib/utils';
 import Pagination from '@/components/pagination';
-import { index as booksIndex, destroy as booksDestroy } from "@/routes/books";
+import { index as booksIndex, destroy as booksDestroy, create as booksCreate } from "@/routes/books";
 import { useBreadcrumbs } from '@/lib/breadcrumbs';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import ConfirmDelete from '@/components/confirm-delete';
 
 export default function BooksIndex({ books, filters }: { books: Paginated<Book>; filters: BookFilters }) {
     const breadcrumbs = useBreadcrumbs({ title: 'Books', href: booksIndex() });
+    const { flash } = usePage<SharedData>().props;
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Books" />
             <div className="p-4 space-y-4">
+                {(flash?.success || flash?.error) && (
+                    <Alert variant={flash?.error ? 'destructive' : 'default'}>
+                        <AlertTitle>{flash?.error ? 'Error' : 'Success'}</AlertTitle>
+                        <AlertDescription>{flash?.error || flash?.success}</AlertDescription>
+                    </Alert>
+                )}
                 <div className="flex items-end gap-2">
                     <form className="flex items-end gap-2" method="get">
                         <div>
@@ -28,7 +37,7 @@ export default function BooksIndex({ books, filters }: { books: Paginated<Book>;
                         <Button type="submit">Filter</Button>
                     </form>
                     <div className="ml-auto">
-                        <Link href="/books/create" prefetch className="inline-block"><Button>Add Book</Button></Link>
+                        <Link href={booksCreate()} prefetch className="inline-block"><Button>Add Book</Button></Link>
                     </div>
                 </div>
 
@@ -56,10 +65,7 @@ export default function BooksIndex({ books, filters }: { books: Paginated<Book>;
                                     <td className="p-2">{b.available_quantity} / {b.stock_quantity}</td>
                                     <td className="p-2">
                                         <Link href={`/books/${b.id}/edit`} prefetch className="mr-2"><Button variant="secondary">Edit</Button></Link>
-                                        <form method="post" action={booksDestroy.form.delete(b.id).action} className="inline">
-                                            <input type="hidden" name="_token" value={(document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement | null)?.content ?? ''} />
-                                            <Button variant="destructive" type="submit">Delete</Button>
-                                        </form>
+                                        <ConfirmDelete form={booksDestroy.form.delete(b.id)} entityLabel="book" name={b.title} />
                                     </td>
                                 </tr>
                             ))}

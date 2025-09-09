@@ -7,8 +7,12 @@ import { Label } from '@/components/ui/label';
 import InputError from '@/components/input-error';
 import { index as usersIndex, edit as usersEdit, update as usersUpdate } from "@/routes/users"
 import { useBreadcrumbs } from '@/lib/breadcrumbs';
+import { usePage } from '@inertiajs/react';
+import { type SharedData } from '@/types';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 export default function UsersEdit({ user }: { user: User }) {
+    const { flash } = usePage<SharedData>().props;
     const breadcrumbs = useBreadcrumbs(
         { title: 'Users', href: usersIndex() },
         { title: 'Edit', href: usersEdit(user.id) },
@@ -19,7 +23,13 @@ export default function UsersEdit({ user }: { user: User }) {
             <Form {...usersUpdate.form.put(user.id)} disableWhileProcessing className="max-w-3xl space-y-6 p-4">
                 {({ processing, errors }) => (
                     <>
-                        <input type="hidden" name="_token" value={(document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement | null)?.content ?? ''} />
+                        {(flash?.success || flash?.error) && (
+                            <Alert className="mb-2" variant={flash?.error ? 'destructive' : 'default'}>
+                                <AlertTitle>{flash?.error ? 'Error' : 'Success'}</AlertTitle>
+                                <AlertDescription>{flash?.error || flash?.success}</AlertDescription>
+                            </Alert>
+                        )}
+
                         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                             <div>
                                 <Label htmlFor="name">Name</Label>

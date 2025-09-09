@@ -8,8 +8,10 @@ import { Label } from '@/components/ui/label';
 import AuthLayout from '@/layouts/auth-layout';
 import { register } from '@/routes';
 import { request } from '@/routes/password';
-import { Form, Head } from '@inertiajs/react';
+import { Form, Head, usePage } from '@inertiajs/react';
 import { LoaderCircle } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { type SharedData } from '@/types';
 
 interface LoginProps {
     status?: string;
@@ -17,6 +19,7 @@ interface LoginProps {
 }
 
 export default function Login({ status, canResetPassword }: LoginProps) {
+    const { flash } = usePage<SharedData>().props;
     return (
         <AuthLayout title="Log in to your account" description="Enter your email and password below to log in">
             <Head title="Log in" />
@@ -24,6 +27,12 @@ export default function Login({ status, canResetPassword }: LoginProps) {
             <Form {...AuthenticatedSessionController.store.form()} resetOnSuccess={['password']} className="flex flex-col gap-6">
                 {({ processing, errors }) => (
                     <>
+                        {(flash?.error || flash?.success || status) && (
+                            <Alert className="mb-2">
+                                <AlertTitle>{flash?.error ? 'Error' : 'Info'}</AlertTitle>
+                                <AlertDescription>{flash?.error || flash?.success || status}</AlertDescription>
+                            </Alert>
+                        )}
                         <div className="grid gap-6">
                             <div className="grid gap-2">
                                 <Label htmlFor="email">Email address</Label>
@@ -82,7 +91,7 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                 )}
             </Form>
 
-            {status && <div className="mb-4 text-center text-sm font-medium text-green-600">{status}</div>}
+            {/* status moved into Alert above */}
         </AuthLayout>
     );
 }

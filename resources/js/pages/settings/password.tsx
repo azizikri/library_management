@@ -4,6 +4,7 @@ import AppLayout from '@/layouts/app-layout';
 import SettingsLayout from '@/layouts/settings/layout';
 import { type BreadcrumbItem } from '@/types';
 import { Transition } from '@headlessui/react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Form, Head } from '@inertiajs/react';
 import { useRef } from 'react';
 
@@ -109,7 +110,10 @@ export default function Password() {
                                         leave="transition ease-in-out"
                                         leaveTo="opacity-0"
                                     >
-                                        <p className="text-sm text-neutral-600">Saved</p>
+                                        <Alert className="mt-2">
+                                            <AlertTitle>Success</AlertTitle>
+                                            <AlertDescription>Password updated.</AlertDescription>
+                                        </Alert>
                                     </Transition>
                                 </div>
                             </>

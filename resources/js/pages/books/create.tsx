@@ -6,8 +6,12 @@ import { Label } from '@/components/ui/label';
 import { index as booksIndex, create as booksCreate, store as booksStore } from "@/routes/books";
 import InputError from '@/components/input-error';
 import { useBreadcrumbs } from '@/lib/breadcrumbs';
+import { usePage } from '@inertiajs/react';
+import { type SharedData } from '@/types';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 export default function BooksCreate() {
+    const { flash } = usePage<SharedData>().props;
     const breadcrumbs = useBreadcrumbs(
         { title: 'Books', href: booksIndex() },
         { title: 'Create', href: booksCreate() },
@@ -18,7 +22,12 @@ export default function BooksCreate() {
             <Form {...booksStore.form()} disableWhileProcessing className="max-w-3xl space-y-6 p-4">
                 {({ processing, errors }) => (
                     <>
-                        <input type="hidden" name="_token" value={(document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement | null)?.content ?? ''} />
+                        {flash?.success && (
+                            <Alert>
+                                <AlertTitle>Success</AlertTitle>
+                                <AlertDescription>{flash.success}</AlertDescription>
+                            </Alert>
+                        )}
                         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                             <div>
                                 <Label htmlFor="title">Title</Label>

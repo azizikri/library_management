@@ -2,6 +2,7 @@ import ProfileController from '@/actions/App/Http/Controllers/Settings/ProfileCo
 import { send } from '@/routes/verification';
 import { type BreadcrumbItem, type SharedData } from '@/types';
 import { Transition } from '@headlessui/react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Form, Head, Link, usePage } from '@inertiajs/react';
 
 import DeleteUser from '@/components/delete-user';
@@ -88,9 +89,10 @@ export default function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: 
                                         </p>
 
                                         {status === 'verification-link-sent' && (
-                                            <div className="mt-2 text-sm font-medium text-green-600">
-                                                A new verification link has been sent to your email address.
-                                            </div>
+                                            <Alert className="mt-2">
+                                                <AlertTitle>Verification</AlertTitle>
+                                                <AlertDescription>A new verification link has been sent to your email address.</AlertDescription>
+                                            </Alert>
                                         )}
                                     </div>
                                 )}
@@ -105,7 +107,10 @@ export default function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: 
                                         leave="transition ease-in-out"
                                         leaveTo="opacity-0"
                                     >
-                                        <p className="text-sm text-neutral-600">Saved</p>
+                                        <Alert className="mt-2">
+                                            <AlertTitle>Success</AlertTitle>
+                                            <AlertDescription>Profile saved.</AlertDescription>
+                                        </Alert>
                                     </Transition>
                                 </div>
                             </>

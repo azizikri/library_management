@@ -8,6 +8,9 @@ import InputError from '@/components/input-error';
 import { useEffect, useState } from 'react';
 import { formatIDR } from '@/lib/utils';
 import { useBreadcrumbs } from '@/lib/breadcrumbs';
+import { usePage } from '@inertiajs/react';
+import { type SharedData } from '@/types';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { index as borrowingsIndex, create as borrowingsCreate, store as borrowingsStore } from "@/routes/borrowings";
 
 export default function BorrowingsCreate({ books }: { books: Book[] }) {
@@ -15,6 +18,7 @@ export default function BorrowingsCreate({ books }: { books: Book[] }) {
         { title: 'Borrowings', href: borrowingsIndex() },
         { title: 'Create', href: borrowingsCreate() },
     );
+    const { flash } = usePage<SharedData>().props;
     const [bookId, setBookId] = useState<number | string>(books?.[0]?.id ?? '');
     const [days, setDays] = useState<number>(1);
     const [total, setTotal] = useState<number | null>(null);
@@ -47,7 +51,13 @@ export default function BorrowingsCreate({ books }: { books: Book[] }) {
             <Form {...borrowingsStore.form()} disableWhileProcessing className="max-w-xl space-y-6 p-4">
                 {({ processing, errors }) => (
                     <>
-                        <input type="hidden" name="_token" value={(document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement | null)?.content ?? ''} />
+                        {(flash?.success || flash?.error) && (
+                            <Alert className="mb-2" variant={flash?.error ? 'destructive' : 'default'}>
+                                <AlertTitle>{flash?.error ? 'Error' : 'Success'}</AlertTitle>
+                                <AlertDescription>{flash?.error || flash?.success}</AlertDescription>
+                            </Alert>
+                        )}
+
                         <div>
                             <Label htmlFor="book_id">Book</Label>
                             <select

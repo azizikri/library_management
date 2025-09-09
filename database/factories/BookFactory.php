@@ -21,7 +21,7 @@ class BookFactory extends Factory
             'author' => fake()->name(),
             'isbn' => fake()->unique()->isbn13(),
             'category' => fake()->randomElement(['Fiction', 'Non-fiction', 'Science', 'History', 'Technology']),
-            'daily_rental_price' => fake()->randomFloat(2, 1000, 10000),
+            'daily_rental_price' => fake()->randomNumber(5),
             'stock_quantity' => $stock,
             'available_quantity' => $available,
             'description' => fake()->paragraph(),
