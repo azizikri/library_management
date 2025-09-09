@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import Pagination from '@/components/pagination';
 import { useBreadcrumbs } from '@/lib/breadcrumbs';
 import { formatDate } from '@/lib/utils';
-import { destroy as usersDestroy, create as usersCreate } from "@/routes/users";
+import { destroy as usersDestroy, create as usersCreate, edit as usersEdit } from "@/routes/users";
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import ConfirmDelete from '@/components/confirm-delete';
 
@@ -56,7 +56,7 @@ export default function UsersIndex({ users, filters }: { users: Paginated<User>;
                                     <td className="p-2">{u.role}</td>
                                     <td className="p-2">{u.created_at ? formatDate(u.created_at) : ''}</td>
                                     <td className="p-2">
-                                        <Link href={`/users/${u.id}/edit`} prefetch className="mr-2"><Button variant="secondary">Edit</Button></Link>
+                                        <Link href={usersEdit(u.id)} prefetch className="mr-2"><Button variant="secondary">Edit</Button></Link>
                                         <ConfirmDelete form={usersDestroy.form.delete(u.id)} entityLabel="user" name={u.email} />
                                     </td>
                                 </tr>

@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { formatIDR } from '@/lib/utils';
 import Pagination from '@/components/pagination';
-import { index as booksIndex, destroy as booksDestroy, create as booksCreate } from "@/routes/books";
+import { index as booksIndex, destroy as booksDestroy, create as booksCreate, edit as booksEdit } from "@/routes/books";
 import { useBreadcrumbs } from '@/lib/breadcrumbs';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import ConfirmDelete from '@/components/confirm-delete';
@@ -64,7 +64,7 @@ export default function BooksIndex({ books, filters }: { books: Paginated<Book>;
                                     <td className="p-2">{formatIDR(b.daily_rental_price)}</td>
                                     <td className="p-2">{b.available_quantity} / {b.stock_quantity}</td>
                                     <td className="p-2">
-                                        <Link href={`/books/${b.id}/edit`} prefetch className="mr-2"><Button variant="secondary">Edit</Button></Link>
+                                        <Link href={booksEdit(b.id)} prefetch className="mr-2"><Button variant="secondary">Edit</Button></Link>
                                         <ConfirmDelete form={booksDestroy.form.delete(b.id)} entityLabel="book" name={b.title} />
                                     </td>
                                 </tr>
