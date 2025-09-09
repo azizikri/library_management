@@ -16,24 +16,31 @@ type ConfirmDeleteProps = {
     form: { action: string; method: Method | 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' }
     entityLabel: string
     name?: string
+    triggerLabel?: string
+    confirmLabel?: string
+    title?: string
+    description?: string
+    triggerVariant?: 'default' | 'destructive' | 'secondary' | 'outline' | 'ghost' | 'link'
 }
 
-export default function ConfirmDelete({ form, entityLabel, name }: ConfirmDeleteProps) {
+export default function ConfirmDelete({ form, entityLabel, name, triggerLabel, confirmLabel, title, description, triggerVariant = 'destructive' }: ConfirmDeleteProps) {
     return (
         <Dialog>
             <DialogTrigger asChild>
-                <Button variant="destructive">Delete</Button>
+                <Button variant={triggerVariant}>{triggerLabel ?? 'Delete'}</Button>
             </DialogTrigger>
             <DialogContent>
                 <DialogHeader>
-                    <DialogTitle>Delete {entityLabel}?</DialogTitle>
+                    <DialogTitle>{title ?? `Delete ${entityLabel}?`}</DialogTitle>
                     <DialogDescription>
-                        {name ? (
-                            <span>
-                                You are about to delete <b>{name}</b>. This action cannot be undone.
-                            </span>
-                        ) : (
-                            <span>This action cannot be undone.</span>
+                        {description ?? (
+                            name ? (
+                                <span>
+                                    You are about to delete <b>{name}</b>. This action cannot be undone.
+                                </span>
+                            ) : (
+                                <span>This action cannot be undone.</span>
+                            )
                         )}
                     </DialogDescription>
                 </DialogHeader>
@@ -43,8 +50,8 @@ export default function ConfirmDelete({ form, entityLabel, name }: ConfirmDelete
                     </DialogClose>
                     <Form {...form} className="inline">
                         {({ processing }) => (
-                            <Button variant="destructive" type="submit" disabled={processing}>
-                                {processing ? 'Deleting…' : 'Confirm delete'}
+                            <Button variant={triggerVariant} type="submit" disabled={processing}>
+                                {processing ? 'Working…' : (confirmLabel ?? 'Confirm delete')}
                             </Button>
                         )}
                     </Form>

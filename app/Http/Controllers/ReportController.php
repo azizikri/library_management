@@ -20,7 +20,7 @@ class ReportController extends Controller
 {
     public function index(Request $request): Response
     {
-        $filters = $request->only(['start_date', 'end_date']);
+        $filters = $request->only(['start_date', 'end_date', 'user_id']);
         $user = $request->user();
 
         if (($user->role ?? 'user') === 'user') {
@@ -38,6 +38,7 @@ class ReportController extends Controller
         return Inertia::render('reports/index', [
             'borrowings' => $borrowings,
             'filters' => $filters,
+            'users' => ($user->role ?? 'user') === 'admin' ? \App\Models\User::where('role', 'user')->orderBy('name')->get(['id', 'name']) : [],
         ]);
     }
 
@@ -47,12 +48,12 @@ class ReportController extends Controller
         $page = LengthAwarePaginator::resolveCurrentPage();
 
         if (DB::getDriverName() === 'mysql') {
-            $raw = collect(DB::select('CALL sp_borrowings_report(?, ?)', [
+            $raw = collect(DB::select('CALL sp_borrowings_report(?, ?, ?)', [
                 $filters['start_date'] ?? null,
                 $filters['end_date'] ?? null,
+                $filters['user_id'] ?? null,
             ]));
 
-            // Normalize to match Eloquent shape used by the React view
             $rows = $raw->map(function ($r) {
                 return (object) [
                     'id' => $r->id,
@@ -78,6 +79,7 @@ class ReportController extends Controller
         }
 
         $query = Borrowing::with(['book', 'user'])
+            ->when(! empty($filters['user_id']), fn ($q) => $q->where('user_id', (int) $filters['user_id']))
             ->when($filters['start_date'] ?? null, fn ($q, $d) => $q->whereDate('borrowed_date', '>=', $d))
             ->when($filters['end_date'] ?? null, fn ($q, $d) => $q->whereDate('borrowed_date', '<=', $d))
             ->orderByDesc('borrowed_date');
@@ -95,9 +97,10 @@ class ReportController extends Controller
                 return Excel::download(new BorrowingsExport($filters + ['user_id' => $user->id]), 'borrowings-report.xlsx');
             }
             if (DB::getDriverName() === 'mysql') {
-                $rows = collect(DB::select('CALL sp_borrowings_report(?, ?)', [
+                $rows = collect(DB::select('CALL sp_borrowings_report(?, ?, ?)', [
                     $filters['start_date'] ?? null,
                     $filters['end_date'] ?? null,
+                    $filters['user_id'] ?? null,
                 ]));
 
                 return Excel::download(new BorrowingsProcedureExport($rows), 'borrowings-report.xlsx');
@@ -115,9 +118,10 @@ class ReportController extends Controller
                     ->orderByDesc('borrowed_date')
                     ->get();
             } elseif (DB::getDriverName() === 'mysql') {
-                $borrowings = collect(DB::select('CALL sp_borrowings_report(?, ?)', [
+                $borrowings = collect(DB::select('CALL sp_borrowings_report(?, ?, ?)', [
                     $filters['start_date'] ?? null,
                     $filters['end_date'] ?? null,
+                    $filters['user_id'] ?? null,
                 ]))->map(function ($r) {
                     return (object) [
                         'id' => $r->id,

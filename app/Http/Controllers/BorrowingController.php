@@ -90,4 +90,20 @@ class BorrowingController extends Controller
             'total_cost' => $totalCents / 100,
         ]);
     }
+
+    // Admin: mark a borrowing as returned
+    public function return(Borrowing $borrowing): RedirectResponse
+    {
+        // Update status and actual return date, and restore availability
+        if ($borrowing->status !== 'returned') {
+            $borrowing->status = 'returned';
+            $borrowing->actual_return_date = now();
+            $borrowing->save();
+
+            // increment available quantity for the book
+            $borrowing->book()->increment('available_quantity');
+        }
+
+        return redirect()->back()->with('success', 'Borrowing marked as returned');
+    }
 }
