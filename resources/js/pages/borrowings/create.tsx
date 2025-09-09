@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import InputError from '@/components/input-error';
 import { useEffect, useState } from 'react';
-import { formatIDR } from '@/lib/utils';
+import { csrfHeaders, formatIDR } from '@/lib/utils';
 import { useBreadcrumbs } from '@/lib/breadcrumbs';
 import { usePage } from '@inertiajs/react';
 import { type SharedData } from '@/types';
@@ -27,10 +27,9 @@ export default function BorrowingsCreate({ books }: { books: Book[] }) {
         const fetchCost = async () => {
             if (!bookId || !days) return;
             try {
-                const token = (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement | null)?.content;
                 const res = await fetch('/calculate-cost', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest', ...(token ? { 'X-CSRF-TOKEN': token } : {}) },
+                    headers: csrfHeaders({ 'Content-Type': 'application/json' }),
                     body: JSON.stringify({ book_id: bookId, days: Number(days) }),
                     credentials: 'include',
                 });
