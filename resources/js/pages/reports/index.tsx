@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { formatDate, formatIDR } from '@/lib/utils';
 import Pagination from '@/components/pagination';
-import { index as reportsIndex } from '@/routes/reports';
+import { index as reportsIndex, exportMethod as reportsExport } from '@/routes/reports';
 import { useBreadcrumbs } from '@/lib/breadcrumbs';
 
 export default function ReportsIndex({ borrowings, filters }: { borrowings: Paginated<Borrowing>; filters: ReportFilters }) {
@@ -28,10 +28,14 @@ export default function ReportsIndex({ borrowings, filters }: { borrowings: Pagi
                 </form>
 
                 <div className="flex gap-2">
-                    <a href={`/reports/export/excel?start_date=${filters?.start_date ?? ''}&end_date=${filters?.end_date ?? ''}`}>
+                    <a
+                        href={reportsExport('excel', { query: { start_date: filters?.start_date, end_date: filters?.end_date } }).url}
+                    >
                         <Button type="button">Export Excel</Button>
                     </a>
-                    <a href={`/reports/export/pdf?start_date=${filters?.start_date ?? ''}&end_date=${filters?.end_date ?? ''}`}>
+                    <a
+                        href={reportsExport('pdf', { query: { start_date: filters?.start_date, end_date: filters?.end_date } }).url}
+                    >
                         <Button type="button" variant="secondary">Export PDF</Button>
                     </a>
                 </div>
