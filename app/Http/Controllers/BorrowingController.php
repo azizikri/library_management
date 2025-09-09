@@ -17,29 +17,57 @@ class BorrowingController extends Controller
 {
     public function index(Request $request): Response
     {
+        $userId = $request->user()->id;
+
+        $today = now()->toDateString();
+        Borrowing::where('user_id', $userId)
+            ->where('status', 'active')
+            ->whereDate('return_date', '<', $today)
+            ->update(['status' => 'overdue']);
+        $overdueCount = Borrowing::where('user_id', $userId)->where('status', 'overdue')->count();
+
         $borrowings = Borrowing::with('book')
-            ->where('user_id', $request->user()->id)
-            ->orderByDesc('created_at')
+            ->where('user_id', $userId)
+            ->orderByRaw("CASE WHEN status = 'overdue' THEN 1 ELSE 0 END DESC")
+            ->orderByDesc('borrowed_date')
             ->paginate(10);
 
         return Inertia::render('borrowings/index', [
             'borrowings' => $borrowings,
+            'overdue_count' => $overdueCount,
         ]);
     }
 
-    public function create(): Response
+    public function create(Request $request): Response
     {
+        $userId = $request->user()->id;
+        // Pastikan status overdue tersinkron terlebih dahulu
+        $today = now()->toDateString();
+        Borrowing::where('user_id', $userId)
+            ->where('status', 'active')
+            ->whereDate('return_date', '<', $today)
+            ->update(['status' => 'overdue']);
+        $overdueCount = Borrowing::where('user_id', $userId)->where('status', 'overdue')->count();
+        $blocked = $overdueCount >= 2;
+
         $books = Book::where('available_quantity', '>', 0)
             ->orderBy('title')
             ->get(['id', 'title', 'author', 'daily_rental_price', 'available_quantity']);
 
         return Inertia::render('borrowings/create', [
             'books' => $books,
+            'overdue_count' => $overdueCount,
+            'blocked' => $blocked,
         ]);
     }
 
     public function store(Request $request, CalculatorService $calculator): RedirectResponse
     {
+        $overdueCount = Borrowing::where('user_id', $request->user()->id)->where('status', 'overdue')->count();
+        if ($overdueCount >= 2) {
+            return back()->with('error', 'Anda memiliki 2 atau lebih peminjaman terlambat. Kembalikan buku yang terlambat terlebih dahulu.');
+        }
+
         $data = $request->validate([
             'book_id' => 'required|exists:books,id',
             'days_borrowed' => 'required|integer|min:1|max:365',

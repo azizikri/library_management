@@ -13,7 +13,7 @@ import { type SharedData } from '@/types';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { index as borrowingsIndex, create as borrowingsCreate, store as borrowingsStore } from "@/routes/borrowings";
 
-export default function BorrowingsCreate({ books }: { books: Book[] }) {
+export default function BorrowingsCreate({ books, blocked = false, overdue_count = 0 }: { books: Book[]; blocked?: boolean; overdue_count?: number }) {
     const breadcrumbs = useBreadcrumbs(
         { title: 'Borrowings', href: borrowingsIndex() },
         { title: 'Create', href: borrowingsCreate() },
@@ -47,6 +47,14 @@ export default function BorrowingsCreate({ books }: { books: Book[] }) {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="New Borrowing" />
+            {blocked && (
+                <Alert className="mb-2" variant="destructive">
+                    <AlertTitle>Peminjaman Diblokir</AlertTitle>
+                    <AlertDescription>
+                        Anda memiliki {overdue_count} peminjaman terlambat. Kembalikan buku yang terlambat terlebih dahulu sebelum meminjam lagi.
+                    </AlertDescription>
+                </Alert>
+            )}
             <Form {...borrowingsStore.form()} disableWhileProcessing className="max-w-xl space-y-6 p-4">
                 {({ processing, errors }) => (
                     <>
@@ -88,7 +96,7 @@ export default function BorrowingsCreate({ books }: { books: Book[] }) {
                             <InputError message={errors.days_borrowed} />
                         </div>
                         <div className="text-sm">{total !== null ? `Perkiraan total: ${formatIDR(total)}` : '—'}</div>
-                        <Button type="submit" disabled={processing}>Borrow</Button>
+                        <Button type="submit" disabled={processing || blocked}>Borrow</Button>
                     </>
                 )}
             </Form>

@@ -23,6 +23,15 @@ class ReportController extends Controller
         $filters = $request->only(['start_date', 'end_date', 'user_id']);
         $user = $request->user();
 
+        // Sinkronkan status overdue sebelum menampilkan laporan
+        $today = now()->toDateString();
+        $sync = Borrowing::where('status', 'active')
+            ->whereDate('return_date', '<', $today);
+        if (($user->role ?? 'user') === 'user') {
+            $sync->where('user_id', $user->id);
+        }
+        $sync->update(['status' => 'overdue']);
+
         if (($user->role ?? 'user') === 'user') {
             $borrowings = Borrowing::with(['book', 'user'])
                 ->where('user_id', $user->id)

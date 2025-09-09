@@ -12,6 +12,7 @@ import { index as reportsIndex, exportMethod as reportsExport } from '@/routes/r
 import { returning as borrowingReturn } from '@/routes/borrowings';
 import { useBreadcrumbs } from '@/lib/breadcrumbs';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
 import ConfirmDelete from '@/components/confirm-delete';
 
 export default function ReportsIndex({ borrowings, filters, users = [] as { id: number; name: string }[] }: { borrowings: Paginated<Borrowing>; filters: ReportFilters & { user_id?: number | string }; users?: { id: number; name: string }[] }) {
@@ -83,31 +84,49 @@ export default function ReportsIndex({ borrowings, filters, users = [] as { id: 
                             </tr>
                         </thead>
                         <tbody>
-                            {borrowings?.data?.map((r: Borrowing) => (
-                                <tr key={r.id} className="border-t">
-                                    <td className="p-2">{r.user?.name}</td>
-                                    <td className="p-2">{r.book?.title}</td>
-                                    <td className="p-2">{formatDate(r.borrowed_date)}</td>
-                                    <td className="p-2">{formatDate(r.return_date)}</td>
-                                    <td className="p-2">{r.days_borrowed}</td>
-                                    <td className="p-2">{formatIDR(r.total_cost)}</td>
-                                    <td className="p-2">{r.status}</td>
-                                    {auth.user?.role === 'admin' && r.status !== 'returned' && (
-                                        <td className="p-2">
-                                            <ConfirmDelete
-                                                form={borrowingReturn.form({ borrowing: r.id })}
-                                                entityLabel="borrowing"
-                                                name={r.book?.title}
-                                                triggerLabel="Return"
-                                                confirmLabel="Confirm return"
-                                                title="Mark as returned?"
-                                                description="This will mark the borrowing as returned and restock the book."
-                                                triggerVariant="secondary"
-                                            />
-                                        </td>
-                                    )}
-                                </tr>
-                            ))}
+                            {borrowings?.data?.map((r: Borrowing) => {
+                                const statusBadge =
+                                    r.status === 'overdue' ? (
+                                        <Badge variant="destructive">Overdue</Badge>
+                                    ) : r.status === 'returned' ? (
+                                        <Badge
+                                            variant="secondary"
+                                            className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-200"
+                                        >
+                                            Returned
+                                        </Badge>
+                                    ) : (
+                                        <Badge variant="secondary" className="capitalize">
+                                            {r.status}
+                                        </Badge>
+                                    );
+
+                                return (
+                                    <tr key={r.id} className="border-t">
+                                        <td className="p-2">{r.user?.name}</td>
+                                        <td className="p-2">{r.book?.title}</td>
+                                        <td className="p-2">{formatDate(r.borrowed_date)}</td>
+                                        <td className="p-2">{formatDate(r.return_date)}</td>
+                                        <td className="p-2">{r.days_borrowed}</td>
+                                        <td className="p-2">{formatIDR(r.total_cost)}</td>
+                                        <td className="p-2">{statusBadge}</td>
+                                        {auth.user?.role === 'admin' && r.status !== 'returned' && (
+                                            <td className="p-2">
+                                                <ConfirmDelete
+                                                    form={borrowingReturn.form({ borrowing: r.id })}
+                                                    entityLabel="borrowing"
+                                                    name={r.book?.title}
+                                                    triggerLabel="Return"
+                                                    confirmLabel="Confirm return"
+                                                    title="Mark as returned?"
+                                                    description="This will mark the borrowing as returned and restock the book."
+                                                    triggerVariant="secondary"
+                                                />
+                                            </td>
+                                        )}
+                                    </tr>
+                                );
+                            })}
                         </tbody>
                     </table>
                 </div>
