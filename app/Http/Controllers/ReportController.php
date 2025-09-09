@@ -21,8 +21,19 @@ class ReportController extends Controller
     public function index(Request $request): Response
     {
         $filters = $request->only(['start_date', 'end_date']);
+        $user = $request->user();
 
-        $borrowings = $this->getBorrowingsReport($filters);
+        if (($user->role ?? 'user') === 'user') {
+            $borrowings = Borrowing::with(['book', 'user'])
+                ->where('user_id', $user->id)
+                ->when($filters['start_date'] ?? null, fn ($q, $d) => $q->whereDate('borrowed_date', '>=', $d))
+                ->when($filters['end_date'] ?? null, fn ($q, $d) => $q->whereDate('borrowed_date', '<=', $d))
+                ->orderByDesc('borrowed_date')
+                ->paginate(10)
+                ->withQueryString();
+        } else {
+            $borrowings = $this->getBorrowingsReport($filters);
+        }
 
         return Inertia::render('reports/index', [
             'borrowings' => $borrowings,
@@ -77,8 +88,12 @@ class ReportController extends Controller
     public function export(Request $request, string $type)
     {
         $filters = $request->only(['start_date', 'end_date']);
+        $user = $request->user();
 
         if ($type === 'excel') {
+            if (($user->role ?? 'user') === 'user') {
+                return Excel::download(new BorrowingsExport($filters + ['user_id' => $user->id]), 'borrowings-report.xlsx');
+            }
             if (DB::getDriverName() === 'mysql') {
                 $rows = collect(DB::select('CALL sp_borrowings_report(?, ?)', [
                     $filters['start_date'] ?? null,
@@ -92,7 +107,14 @@ class ReportController extends Controller
         }
 
         if ($type === 'pdf') {
-            if (DB::getDriverName() === 'mysql') {
+            if (($user->role ?? 'user') === 'user') {
+                $borrowings = Borrowing::with(['book', 'user'])
+                    ->where('user_id', $user->id)
+                    ->when($filters['start_date'] ?? null, fn ($q, $d) => $q->whereDate('borrowed_date', '>=', $d))
+                    ->when($filters['end_date'] ?? null, fn ($q, $d) => $q->whereDate('borrowed_date', '<=', $d))
+                    ->orderByDesc('borrowed_date')
+                    ->get();
+            } elseif (DB::getDriverName() === 'mysql') {
                 $borrowings = collect(DB::select('CALL sp_borrowings_report(?, ?)', [
                     $filters['start_date'] ?? null,
                     $filters['end_date'] ?? null,

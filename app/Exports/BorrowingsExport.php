@@ -22,6 +22,10 @@ class BorrowingsExport implements FromQuery, WithHeadings, WithMapping
     {
         $q = Borrowing::query()->with(['user', 'book']);
 
+        if (! empty($this->filters['user_id'])) {
+            $q->where('user_id', (int) $this->filters['user_id']);
+        }
+
         if (! empty($this->filters['start_date'])) {
             $q->whereDate('borrowed_date', '>=', $this->filters['start_date']);
         }
